@@ -2,10 +2,10 @@
 
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { fetchNoteById } from '@/lib/api';
-import TanStackProvider from '@/components/TanStackProvider/TanStackProvider';
-import Loader from '@/components/Loader/Loader';
-import css from './NoteDetails.module.css';
+import { fetchNoteById } from '../../../lib/api';
+import TanStackProvider from '../../../components/TanStackProvider/TanStackProvider';
+import Loader from '../../../components/Loader/Loader';
+import css from '../../../components/Modal/Modal.module.css';
 
 type Props = {
   id?: string;

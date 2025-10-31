@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchNotes } from '@/lib/api';
-import TanStackProvider from '@/components/TanStackProvider/TanStackProvider';
-import NoteList from '@/components/NoteList/NoteList';
-import SearchBox from '@/components/SearchBox/SearchBox';
-import Loader from '@/components/Loader/Loader';
+import { fetchNotes } from '../../lib/api';
+import TanStackProvider from '../../components/TanStackProvider/TanStackProvider';
+import NoteList from '../../components/NoteList/NoteList';
+import SearchBox from '../../components/SearchBox/SearchBox';
+import Loader from '../../components/Loader/Loader';
 import Link from 'next/link';
 
 type Props = {
