@@ -1,23 +1,24 @@
+import { Suspense } from 'react';
 import { dehydrate } from '@tanstack/react-query';
 import { createQueryClient } from '../../../lib/queryClient';
 import { fetchNoteById } from '../../../lib/api';
 import NoteDetailsClient from './NoteDetails.client';
+import Loader from '../../../components/Loader/Loader';
 import { notFound } from 'next/navigation';
 
-interface PageProps {
+type NotePageProps = {
   params: Promise<{ id: string }>;
-}
+};
 
-export default async function NotePage({ params }: PageProps) {
+export default async function NotePage({ params }: NotePageProps) {
   const { id } = await params;
 
-  if (!id) {
-    notFound();
-  }
+  const note = await fetchNoteById(id);
+  if (!note) return notFound();
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold">Note {id}</h1>
-    </div>
+    <Suspense fallback={<Loader />}>
+      <NoteDetailsClient note={note} />
+    </Suspense>
   );
 }
