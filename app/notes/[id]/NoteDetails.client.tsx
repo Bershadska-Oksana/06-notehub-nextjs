@@ -2,8 +2,8 @@
 
 import React from 'react';
 import css from './NoteDetails.module.css';
-import { TanStackProvider } from '../../../components/TanStackProvider/TanStackProvider';
 import type { Note } from '../../../types/note';
+import TanStackProvider from '../../../components/TanStackProvider';
 
 type Props = {
   note: Note;
