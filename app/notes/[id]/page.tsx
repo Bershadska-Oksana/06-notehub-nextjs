@@ -3,24 +3,18 @@ import { createQueryClient } from '../../../lib/queryClient';
 import { fetchNoteById } from '../../../lib/api';
 import NoteDetailsClient from './NoteDetails.client';
 
-type PageProps = {
-  params: {
-    id: string;
-  };
+type NotePageProps = {
+  params: { id: string };
 };
 
-export default async function NotePage({ params }: PageProps) {
-  const { id } = await params;
+export default async function NotePage({ params }: NotePageProps) {
   const queryClient = createQueryClient();
-
-
   await queryClient.prefetchQuery({
-    queryKey: ['note', id],
-    queryFn: () => fetchNoteById(id),
+    queryKey: ['note', params.id],
+    queryFn: () => fetchNoteById(params.id),
   });
 
   const dehydratedState = dehydrate(queryClient);
 
-  return <NoteDetails id={id} dehydratedState={dehydratedState} />;
-}
+  return <NoteDetailsClient id={params.id} dehydratedState={dehydratedState} />;
 }
