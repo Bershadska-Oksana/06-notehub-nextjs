@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import css from './Modal.module.css';
 
@@ -9,13 +11,20 @@ export interface ModalProps {
 }
 
 const Modal = ({ onClose, children, title }: ModalProps) => {
+  const [modalRoot, setModalRoot] = useState<Element | null>(null);
+
   useEffect(() => {
+    // Працює тільки на клієнті
+    setModalRoot(document.getElementById('modal-root'));
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
+
     document.addEventListener('keydown', onKey);
     const original = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = original;
@@ -26,7 +35,6 @@ const Modal = ({ onClose, children, title }: ModalProps) => {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const modalRoot = document.getElementById('modal-root');
   if (!modalRoot) return null;
 
   return createPortal(

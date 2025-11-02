@@ -38,7 +38,7 @@ export default function NotesClient({ dehydratedState }: Props) {
           }}
         >
           <SearchBox value={search} onChange={(v: string) => setSearch(v)} />
-          <Link href="/notes/new">Create note</Link>
+          <Link href="/notes/create">Create note</Link>
         </div>
 
         <NoteList notes={data?.notes ?? []} onDelete={() => refetch()} />

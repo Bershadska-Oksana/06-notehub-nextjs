@@ -1,3 +1,6 @@
+'use client';
+
+import React from 'react';
 import css from './SearchBox.module.css';
 
 export interface SearchBoxProps {
