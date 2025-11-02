@@ -1,66 +1,49 @@
-import React, { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useDebounce } from 'use-debounce';
-import { fetchNotes, FetchNotesResponse } from '../../../lib/api';
+'use client';
+
+import React from 'react';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { fetchNotes } from '../../../lib/api';
+import TanStackProvider from '../../../components/TanStackProvider/TanStackProvider';
 import NoteList from '../../../components/NoteList/NoteList';
-import Pagination from '../../../components/Pagination/Pagination';
 import SearchBox from '../../../components/SearchBox/SearchBox';
-import Modal from '../../../components/Modal/Modal';
-import NoteForm from '../../../components/NoteForm/NoteForm';
-import css from './App.module.css';
+import Loader from '../../../components/Loader/Loader';
+import Link from 'next/link';
 
-function App() {
-  const [page, setPage] = useState(1);
-  const [search, setSearchState] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [debouncedSearch] = useDebounce(search, 500);
+export default function NotesClient() {
+  const [search, setSearch] = React.useState('');
+  const [page, setPage] = React.useState(1);
+  const perPage = 12;
 
-  const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
-    queryKey: ['notes', page, debouncedSearch],
-    queryFn: () => fetchNotes({ page, perPage: 12, search: debouncedSearch }),
-    keepPreviousData: true,
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['notes', { page, perPage, search }],
+    queryFn: () => fetchNotes({ page, perPage, search }),
+
+    placeholderData: keepPreviousData,
   });
 
-  const notes = data?.notes ?? [];
-  const totalPages = data?.totalPages ?? 0;
-
-  const setSearch = useCallback((value: string) => {
-    setPage(1);
-    setSearchState(value);
-  }, []);
+  if (isLoading) return <Loader />;
+  if (isError) return <p>Could not fetch the list of notes.</p>;
 
   return (
-    <div className={css.app}>
-      <header className={css.toolbar}>
-        <SearchBox value={search} onChange={setSearch} />
-        {totalPages > 1 && (
-          <Pagination
-            pageCount={totalPages}
-            currentPage={page}
-            onPageChange={setPage}
+    <TanStackProvider>
+      <div style={{ padding: 20 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+          }}
+        >
+          <SearchBox
+            value={search}
+            onChange={(v: string) => setSearch(v)}
+            onSearch={() => refetch()}
           />
-        )}
-        <button className={css.button} onClick={() => setIsModalOpen(true)}>
-          Create note +
-        </button>
-      </header>
+          <Link href="/notes/new">Create note</Link>
+        </div>
 
-      {isLoading && <p>Loading notes...</p>}
-      {isError && <p>Something went wrong. Please try again.</p>}
-
-      {notes.length > 0 ? (
-        <NoteList notes={notes} />
-      ) : (
-        !isLoading && <p>No notes found.</p>
-      )}
-
-      {isModalOpen && (
-        <Modal onClose={() => setIsModalOpen(false)} title="Create note">
-          <NoteForm onClose={() => setIsModalOpen(false)} />
-        </Modal>
-      )}
-    </div>
+        <NoteList notes={data?.notes ?? []} onDelete={() => refetch()} />
+      </div>
+    </TanStackProvider>
   );
 }
-
-export default App;

@@ -4,11 +4,11 @@ import { fetchNoteById } from '../../../lib/api';
 import NoteDetailsClient from './NoteDetails.client';
 import Loader from '../../../components/Loader/Loader';
 
-type PageProps = {
+interface NotePageProps {
   params: { id: string };
-};
+}
 
-export default async function NotePage({ params }: PageProps) {
+export default async function NotePage({ params }: NotePageProps) {
   const { id } = params;
 
   const note = await fetchNoteById(id).catch(() => null);

@@ -8,15 +8,17 @@ import Link from 'next/link';
 
 export interface NoteListProps {
   notes: Note[];
+  onDelete?: () => void;
 }
 
-const NoteList = ({ notes }: NoteListProps) => {
+const NoteList = ({ notes, onDelete }: NoteListProps) => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (id: string) => deleteNote(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
+      if (onDelete) onDelete();
     },
   });
 

@@ -3,7 +3,7 @@
 import React from 'react';
 import css from './NoteDetails.module.css';
 import type { Note } from '../../../types/note';
-import TanStackProvider from '../../../components/TanStackProvider';
+import TanStackProvider from '../../../components/TanStackProvider/TanStackProvider';
 
 type Props = {
   note: Note;
