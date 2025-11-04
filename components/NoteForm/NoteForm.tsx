@@ -1,14 +1,16 @@
 'use client';
 
+import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createNote } from '../../lib/api';
+import { createNote } from '@/lib/api';
 import type { NewNote } from '../../types/note';
 import css from './NoteForm.module.css';
 
 export interface NoteFormProps {
-  onClose: () => void;
+  onClose?: () => void;
+  onSuccess?: () => void;
 }
 
 const validationSchema = Yup.object({
@@ -16,22 +18,22 @@ const validationSchema = Yup.object({
     .required('Title is required')
     .min(3, 'Title must be at least 3 characters')
     .max(50, 'Title must be at most 50 characters'),
-  content: Yup.string()
-    .required('Content is required')
-    .max(500, 'Content must be at most 500 characters'),
+
+  content: Yup.string().max(500, 'Content must be at most 500 characters'),
   tag: Yup.string()
     .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'])
     .required('Tag is required'),
 });
 
-export default function NoteForm({ onClose }: NoteFormProps) {
+export default function NoteForm({ onClose, onSuccess }: NoteFormProps) {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (newNote: NewNote) => createNote(newNote),
-    onSuccess: () => {
+    mutationFn: (note: NewNote) => createNote(note),
+    onSuccess: (newNote: any) => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
-      onClose();
+      if (onClose) onClose();
+      if (onSuccess) onSuccess();
     },
   });
 
@@ -80,14 +82,19 @@ export default function NoteForm({ onClose }: NoteFormProps) {
             <button
               className={css.submitButton}
               type="submit"
-              disabled={mutation.status === 'pending' || isSubmitting}
+              disabled={mutation.status === 'loading' || isSubmitting}
             >
-              Save
+              {mutation.status === 'loading' || isSubmitting
+                ? 'Saving...'
+                : 'Save'}
             </button>
+
             <button
               className={css.cancelButton}
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                if (onClose) onClose();
+              }}
             >
               Cancel
             </button>

@@ -1,48 +1,58 @@
 'use client';
 
-import React from 'react';
-import { useQuery, DehydratedState } from '@tanstack/react-query';
-import { fetchNotes, FetchNotesResponse } from '../../lib/api';
-import TanStackProvider from '../../components/TanStackProvider/TanStackProvider';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchNotes } from '@/lib/api';
 import NoteList from '../../components/NoteList/NoteList';
 import SearchBox from '../../components/SearchBox/SearchBox';
-import Loader from '../../components/Loader/Loader';
-import Link from 'next/link';
+import Modal from '../../components/Modal/Modal';
+import NoteForm from '../../components/NoteForm/NoteForm';
+import { debounce } from 'lodash';
 
-type Props = {
-  dehydratedState?: DehydratedState | null;
-};
+export default function NotesClient() {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-export default function NotesClient({ dehydratedState }: Props) {
-  const [search, setSearch] = React.useState('');
-  const [page] = React.useState(1);
-  const perPage = 12;
-
-  const { data, isLoading, isError, refetch } = useQuery<FetchNotesResponse>({
-    queryKey: ['notes', { page, perPage, search }],
-    queryFn: () => fetchNotes({ page, perPage, search }),
-    staleTime: 1000 * 60 * 2,
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['notes', { query, page }],
+    queryFn: () => fetchNotes({ query, page }),
   });
 
-  if (isLoading) return <Loader />;
-  if (isError) return <p>Could not fetch the list of notes.</p>;
+  const handleSearchChange = debounce((value: string) => {
+    setQuery(value);
+    setPage(1);
+  }, 500);
+
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error loading notes</p>;
 
   return (
-    <TanStackProvider dehydratedState={dehydratedState ?? undefined}>
-      <div style={{ padding: 20 }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: 16,
-          }}
-        >
-          <SearchBox value={search} onChange={(v: string) => setSearch(v)} />
-          <Link href="/notes/create">Create note</Link>
-        </div>
+    <div>
+      <SearchBox value={query} onChange={handleSearchChange} />
+      <button onClick={handleOpenModal}>Create Note</button>
 
-        <NoteList notes={data?.notes ?? []} onDelete={() => refetch()} />
+      <NoteList notes={data?.notes ?? []} />
+
+      {isModalOpen && (
+        <Modal onClose={handleCloseModal}>
+          <NoteForm onSuccess={handleCloseModal} />
+        </Modal>
+      )}
+
+      <div style={{ marginTop: '1rem' }}>
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page === 1}
+        >
+          Prev
+        </button>
+        <span style={{ margin: '0 1rem' }}>Page {page}</span>
+        <button onClick={() => setPage((p) => p + 1)}>Next</button>
       </div>
-    </TanStackProvider>
+    </div>
   );
 }

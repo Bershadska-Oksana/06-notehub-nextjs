@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { fetchNotes } from '../../../lib/api';
+import { fetchNotes } from '@/lib/api';
 import TanStackProvider from '../../../components/TanStackProvider/TanStackProvider';
 import NoteList from '../../../components/NoteList/NoteList';
 import SearchBox from '../../../components/SearchBox/SearchBox';
