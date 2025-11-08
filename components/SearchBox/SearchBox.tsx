@@ -25,9 +25,10 @@ const SearchBox = ({ value, onChange, onSearch }: SearchBoxProps) => {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
+        aria-label="Search notes"
       />
       {onSearch && (
-        <button className={css.button} onClick={onSearch}>
+        <button className={css.button} onClick={onSearch} type="button">
           Search
         </button>
       )}
