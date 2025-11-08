@@ -2,26 +2,30 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { fetchNoteById } from '@/lib/api';
-import styles from './NoteDetails.module.css';
+import type { Note } from '@/types/note';
 
-export default function NoteDetailsClient({ id }: { id: string }) {
-  const {
-    data: note,
-    isLoading,
-    isError,
-  } = useQuery({
+interface NoteDetailsProps {
+  id: string;
+}
+
+export default function NoteDetailsClient({ id }: NoteDetailsProps) {
+  const { data, isLoading, isError } = useQuery<Note>({
     queryKey: ['note', id],
     queryFn: () => fetchNoteById(id),
+    refetchOnMount: false,
   });
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error loading note.</p>;
-  if (!note) return <p>Note not found.</p>;
+  if (isLoading) return <p>Loading note...</p>;
+  if (isError) return <p>Error loading note</p>;
+  if (!data) return <p>Note not found</p>;
 
   return (
-    <div className={styles.noteDetails}>
-      <h1>{note.title}</h1>
-      <p>{note.content}</p>
+    <div>
+      <h2>{data.title}</h2>
+      <p>{data.content}</p>
+      <p>
+        <strong>Tag:</strong> {data.tag}
+      </p>
     </div>
   );
 }

@@ -40,12 +40,11 @@ export default function NoteForm({ onClose, onSuccess }: NoteFormProps) {
     <Formik
       initialValues={{ title: '', content: '', tag: 'Todo' } as NewNote}
       validationSchema={validationSchema}
-      onSubmit={(values: NewNote, { resetForm }) => {
+      onSubmit={(values: NewNote) => {
         mutation.mutate(values);
-        resetForm();
       }}
     >
-      {({ isSubmitting }) => (
+      {({ isSubmitting, resetForm }) => (
         <Form className={css.form}>
           <div className={css.formGroup}>
             <label htmlFor="title">Title</label>
@@ -83,7 +82,7 @@ export default function NoteForm({ onClose, onSuccess }: NoteFormProps) {
               type="submit"
               disabled={mutation.isLoading || isSubmitting}
             >
-              {mutation.isLoading || isSubmitting ? 'Saving...' : 'Save'}
+              {mutation.isLoading || isSubmitting ? 'Saving...' : 'Create note'}
             </button>
 
             <button

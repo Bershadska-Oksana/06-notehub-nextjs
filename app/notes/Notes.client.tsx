@@ -1,118 +1,79 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchNotes, FetchNotesResponse } from '@/lib/api';
+import { fetchNotes } from '@/lib/api';
 import NoteList from '../../components/NoteList/NoteList';
 import SearchBox from '../../components/SearchBox/SearchBox';
 import Modal from '../../components/Modal/Modal';
 import NoteForm from '../../components/NoteForm/NoteForm';
+import Pagination from '../../components/Pagination/Pagination';
 import { debounce } from 'lodash';
 
 export default function NotesClient() {
-  const [input, setInput] = useState(''); // локальний інпут для миттєвого вводу
-  const [query, setQuery] = useState(''); // дебаунсний запит для API
+  const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // debounced setter для query (500ms)
-  const debouncedSetQuery = useMemo(
-    () =>
-      debounce((v: string) => {
-        setQuery(v);
-        setPage(1);
-      }, 500),
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['notes', query, page],
+    queryFn: () => fetchNotes({ query, page }),
+    placeholderData: (prevData) => prevData,
+  });
+
+  const handleSearchChange = useCallback(
+    debounce((value: string) => {
+      setQuery(value);
+      setPage(1);
+    }, 500),
     [],
   );
 
-  const handleInputChange = useCallback(
-    (value: string) => {
-      setInput(value); // миттєво оновлюємо поле вводу
-      debouncedSetQuery(value); // і дебаунсимо запит
-    },
-    [debouncedSetQuery],
-  );
-
-  const { data, isLoading, isError, refetch } = useQuery<FetchNotesResponse>({
-    queryKey: ['notes', query, page],
-    queryFn: () => fetchNotes({ query, page }),
-    keepPreviousData: true,
-    staleTime: 1000 * 60 * 2,
-  });
-
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading notes</p>;
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: '1rem' }}>
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 16,
-          gap: 12,
         }}
       >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <SearchBox
-            value={input}
-            onChange={handleInputChange}
-            onSearch={() => refetch()}
-          />
-        </div>
-
-        <div style={{ marginLeft: 12 }}>
-          <button
-            onClick={openModal}
-            style={{
-              padding: '8px 14px',
-              backgroundColor: '#0d6efd',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-            }}
-          >
-            Create Note
-          </button>
-        </div>
+        <SearchBox onChange={handleSearchChange} />
+        <button
+          onClick={handleOpenModal}
+          style={{
+            backgroundColor: '#0070f3',
+            color: 'white',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: 'none',
+          }}
+        >
+          Create Note
+        </button>
       </div>
 
       <NoteList notes={data?.notes ?? []} />
 
       {isModalOpen && (
-        <Modal onClose={closeModal}>
-          {/* передаємо onClose до форми, щоб Cancel працював */}
-          <NoteForm
-            onClose={closeModal}
-            onSuccess={() => {
-              closeModal();
-              refetch();
-            }}
-          />
+        <Modal onClose={handleCloseModal}>
+          <NoteForm onClose={handleCloseModal} onSuccess={handleCloseModal} />
         </Modal>
       )}
 
-      <div
-        style={{
-          marginTop: '1rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-        }}
-      >
-        <button
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={page === 1}
-        >
-          Prev
-        </button>
-        <span>Page {page}</span>
-        <button onClick={() => setPage((p) => p + 1)}>Next</button>
-      </div>
+      {data?.totalPages > 1 && (
+        <Pagination
+          totalPages={data.totalPages}
+          currentPage={page}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }
